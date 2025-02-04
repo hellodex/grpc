@@ -31,7 +31,7 @@ func main() {
 	log.SetOutput(os.Stdout)
 	conn := grpc_connect(address, false)
 	defer conn.Close()
-	//go stdERR()
+	go stdERR()
 	grpc_subscribe(conn)
 }
 
@@ -154,8 +154,8 @@ func grpc_subscribe(conn *grpc.ClientConn) {
 
 var msg = make(chan []byte, 1024)
 
-//func stdERR() {
-//	for d := range msg {
-//		os.Stderr.WriteString(string(d) + "\n")
-//	}
-//}
+func stdERR() {
+	for d := range msg {
+		os.Stderr.WriteString(string(d) + "\n")
+	}
+}
