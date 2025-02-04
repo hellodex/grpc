@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"encoding/json"
+	"flag"
 	"io"
 	"log"
 	"os"
@@ -19,9 +20,15 @@ import (
 )
 
 var token = ""
-var address = "solana-yellowstone-grpc.publicnode.com:443"
 
 func main() {
+	tokenPtr := flag.String("token", "", "Token for authentication")
+	addressPtr := flag.String("address", "solana-yellowstone-grpc.publicnode.com:443", "gRPC server address")
+
+	flag.Parse()
+
+	token = *tokenPtr
+	address := *addressPtr
 	log.SetOutput(os.Stdout)
 	conn := grpc_connect(address, false)
 	defer conn.Close()
