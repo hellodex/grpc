@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/x509"
-	"encoding/json"
 	"flag"
 	"io"
 	"log"
@@ -32,7 +31,7 @@ func main() {
 	log.SetOutput(os.Stdout)
 	conn := grpc_connect(address, false)
 	defer conn.Close()
-	go stdERR()
+	//go stdERR()
 	grpc_subscribe(conn)
 }
 
@@ -82,7 +81,7 @@ func grpc_subscribe(conn *grpc.ClientConn) {
 				AccountRequired: []string{},
 			},
 		},
-		Commitment: pb.CommitmentLevel_FINALIZED.Enum(),
+		Commitment: pb.CommitmentLevel_CONFIRMED.Enum(),
 		Ping:       nil,
 	}
 
@@ -146,17 +145,17 @@ func grpc_subscribe(conn *grpc.ClientConn) {
 			lastTimestamp = currentTimestamp
 		}
 
-		if data, err := json.Marshal(tx); err == nil {
-			msg <- data
-		}
+		//if data, err := json.Marshal(tx); err == nil {
+		//	msg <- data
+		//}
 
 	}
 }
 
 var msg = make(chan []byte, 1024)
 
-func stdERR() {
-	for d := range msg {
-		os.Stderr.WriteString(string(d) + "\n")
-	}
-}
+//func stdERR() {
+//	for d := range msg {
+//		os.Stderr.WriteString(string(d) + "\n")
+//	}
+//}
