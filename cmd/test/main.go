@@ -81,7 +81,7 @@ func grpc_subscribe(conn *grpc.ClientConn) {
 				AccountRequired: []string{},
 			},
 		},
-		Commitment: pb.CommitmentLevel_CONFIRMED.Enum(),
+		Commitment: pb.CommitmentLevel_PROCESSED.Enum(),
 		Ping:       nil,
 	}
 
