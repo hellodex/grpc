@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
+	"encoding/json"
 	pb "github.com/rpcpool/yellowstone-grpc/examples/golang/proto"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -145,9 +145,9 @@ func grpc_subscribe(conn *grpc.ClientConn) {
 			lastTimestamp = currentTimestamp
 		}
 
-		//if data, err := json.Marshal(tx); err == nil {
-		//	msg <- data
-		//}
+		if data, err := json.Marshal(tx); err == nil {
+			msg <- data
+		}
 
 	}
 }
