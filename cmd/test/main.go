@@ -3,15 +3,18 @@ package main
 import (
 	"context"
 	"crypto/x509"
+	"encoding/json"
 	"flag"
-	"github.com/gagliardetto/solana-go"
-	"github.com/gagliardetto/solana-go/rpc"
-	"github.com/mr-tron/base58"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"time"
 
+	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
+
+	"github.com/rpcpool/yellowstone-grpc/examples/golang/adapter"
 	pb "github.com/rpcpool/yellowstone-grpc/examples/golang/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -33,7 +36,7 @@ func main() {
 	log.SetOutput(os.Stdout)
 	conn := grpc_connect(address, false)
 	defer conn.Close()
-	go stdERR()
+	// go stdERR()
 	go stdAccountIndexes()
 	grpc_subscribe(conn)
 }
@@ -178,22 +181,28 @@ type RawTransaction struct {
 func stdAccountIndexes() {
 	//solana.PublicKeyFromBytes(message.AccountKeys[0])
 	for tx := range txsChan {
+		jjj := adapter.GrpcToJsonRpc(tx)
+		jsonb, err := json.Marshal(jjj)
+		if err != nil {
+			return
+		}
+		fmt.Println(string(jsonb))
 
-		//交易
-		tran := tx.Transaction.GetTransaction()
-
-		message := tran.Message
-		//交易Tx
-		signature := base58.Encode(tran.Signatures[0])
-		////最大账户索引
-		//accountsLen := len(tran.Message.AccountKeys) - 1
-		//交易内联指令
-		//innerInsAll := tx.GetTransaction().Meta.InnerInstructions
-		//innMap := make(map[uint32][]*pb.InnerInstruction)
-		//for _, in := range innerInsAll {
-		//	innMap[in.Index] = in.Instructions
-		//}
-		log.Printf("tx:%d,%d, %s, accounts: %s", tx.Slot, tx.GetTransaction().Index, signature, solana.PublicKeyFromBytes(message.AccountKeys[0]).String())
+		////交易
+		//tran := tx.Transaction.GetTransaction()
+		//
+		//message := tran.Message
+		////交易Tx
+		//signature := base58.Encode(tran.Signatures[0])
+		//////最大账户索引
+		////accountsLen := len(tran.Message.AccountKeys) - 1
+		////交易内联指令
+		////innerInsAll := tx.GetTransaction().Meta.InnerInstructions
+		////innMap := make(map[uint32][]*pb.InnerInstruction)
+		////for _, in := range innerInsAll {
+		////	innMap[in.Index] = in.Instructions
+		////}
+		//log.Printf("tx:%d,%d, %s, accounts: %s", tx.Slot, tx.GetTransaction().Index, signature, solana.PublicKeyFromBytes(message.AccountKeys[0]).String())
 		//交易指令
 		/*
 			for i, in := range tran.Message.Instructions {

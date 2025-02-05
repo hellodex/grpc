@@ -201,17 +201,22 @@ func GrpcToJsonRpc(txn *pb.SubscribeUpdateTransaction) *RawTransaction {
 			Status:            map[string]interface{}{},
 			Rewards:           blockReward,
 			LoadedAddresses:   loadedAddress,
-			ReturnData: rpc.ReturnData{
-				ProgramId: solana.PublicKey(meta.ReturnData.ProgramId),
-				Data: solana.Data{
-					Content:  meta.ReturnData.GetData(),
-					Encoding: "base64",
-				},
-			},
+			ReturnData: func() rpc.ReturnData {
+				if meta.ReturnData == nil {
+					return rpc.ReturnData{}
+				}
+				return rpc.ReturnData{
+					ProgramId: solana.PublicKey(meta.ReturnData.ProgramId),
+					Data: solana.Data{
+						Content:  meta.ReturnData.GetData(),
+						Encoding: "base64",
+					},
+				}
+			}(),
 			ComputeUnitsConsumed: meta.ComputeUnitsConsumed,
 		},
 		Index:     uint32(txn.GetTransaction().Index),
-		BlockTime: time.Time{},
+		BlockTime: time.Now(),
 	}
 
 }
