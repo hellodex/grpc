@@ -1,3 +1,4 @@
 justfile
 log.txt
 output.txt
+.idea
