@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/x509"
 	"flag"
+	"github.com/gagliardetto/solana-go"
+	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/mr-tron/base58"
 	"io"
 	"log"
@@ -118,6 +120,7 @@ func grpc_subscribe(conn *grpc.ClientConn) {
 		}
 
 		tx := resp.GetTransaction()
+		resp.GetTransaction()
 		if tx == nil {
 			log.Println("Received non-transaction message, continuing...")
 			log.Printf("CurrentTimestamp: %v %v", currentTimestamp, resp)
@@ -159,64 +162,79 @@ var txsChan = make(chan *pb.SubscribeUpdateTransaction)
 func stdERR() {
 	for d := range msg {
 		os.Stderr.WriteString(string(d) + "\n")
+
 	}
+}
+
+type RawTransaction struct {
+	Slot        uint64
+	Transaction *solana.Transaction
+	Meta        *rpc.TransactionMeta
+	Index       uint32
+	BlockTime   time.Time
 }
 
 // 输出账户索引超限的交易 (需要请求动态地址表的交易)
 func stdAccountIndexes() {
+	//solana.PublicKeyFromBytes(message.AccountKeys[0])
 	for tx := range txsChan {
 
 		//交易
 		tran := tx.Transaction.GetTransaction()
+
+		message := tran.Message
 		//交易Tx
 		signature := base58.Encode(tran.Signatures[0])
-		//最大账户索引
-		accountsLen := len(tran.Message.AccountKeys) - 1
+		////最大账户索引
+		//accountsLen := len(tran.Message.AccountKeys) - 1
 		//交易内联指令
-		innerInsAll := tx.GetTransaction().Meta.InnerInstructions
-		innMap := make(map[uint32][]*pb.InnerInstruction)
-		for _, in := range innerInsAll {
-			innMap[in.Index] = in.Instructions
-		}
+		//innerInsAll := tx.GetTransaction().Meta.InnerInstructions
+		//innMap := make(map[uint32][]*pb.InnerInstruction)
+		//for _, in := range innerInsAll {
+		//	innMap[in.Index] = in.Instructions
+		//}
+		log.Printf("tx:%d,%d, %s, accounts: %s", tx.Slot, tx.GetTransaction().Index, signature, solana.PublicKeyFromBytes(message.AccountKeys[0]).String())
 		//交易指令
-		for i, in := range tran.Message.Instructions {
-			ProgramIdIndex := in.ProgramIdIndex
-			//交易指令ProgramId索引 大于最大账户索引则输出
-			if ProgramIdIndex > uint32(accountsLen) {
-				// Printf 第几个交易指令 ProgramIdIndex 最大账户索引 交易Tx
-				log.Printf("Ins ProgramIdIndex %d: %d>%d, %s ", i, ProgramIdIndex, accountsLen, signature)
-			}
-			//交易指令accounts索引  大于最大账户索引则输出
-		inFOR:
-			for _, u := range in.Accounts {
-				if u > uint8(accountsLen) {
-					// Printf 第几个交易指令 索引列表 最大账户索引 交易Tx
-					log.Printf("Ins accountIndex %d:  %v>%d, %s ", i, in.Accounts, accountsLen, base58.Encode(tran.Signatures[0]))
-					break inFOR
+		/*
+			for i, in := range tran.Message.Instructions {
+				ProgramIdIndex := in.ProgramIdIndex
+				//交易指令ProgramId索引 大于最大账户索引则输出
+				if ProgramIdIndex > uint32(accountsLen) {
+					// Printf 第几个交易指令 ProgramIdIndex 最大账户索引 交易Tx
+					log.Printf("Ins ProgramIdIndex %d: %d>%d, %s ", i, ProgramIdIndex, accountsLen, signature)
 				}
-			}
-			innerIns, exists := innMap[uint32(i)]
-			if exists {
-
-				for iin, insi := range innerIns {
-					//交易内联指令ProgramId索引 大于最大账户索引则输出
-					iProgramIdIndex := insi.ProgramIdIndex
-					if iProgramIdIndex >= uint32(accountsLen) {
-						// Printf 第几个交易指令 内联指令列表第几个  ProgramIdIndex 最大账户索引 交易Tx
-						log.Printf("Ins innProgramIdIndex %d:%d %d>%d, %s ", i, iin, ProgramIdIndex, accountsLen, signature)
+				//交易指令accounts索引  大于最大账户索引则输出
+			inFOR:
+				for _, u := range in.Accounts {
+					if u > uint8(accountsLen) {
+						// Printf 第几个交易指令 索引列表 最大账户索引 交易Tx
+						log.Printf("Ins accountIndex %d:  %v>%d, %s ", i, in.Accounts, accountsLen, base58.Encode(tran.Signatures[0]))
+						break inFOR
 					}
-					//交易内联指令accounts索引  大于最大账户索引则输出
-				insiFOR:
-					for _, u := range insi.Accounts {
-						if u >= uint8(accountsLen) {
-							// Printf 第几个交易指令 内联指令列表第几个 索引列表 最大账户索引 交易Tx
-							log.Printf("Ins innAccountIndex %d:%d  %v>%d, %s ", i, iin, insi.Accounts, accountsLen, base58.Encode(tran.Signatures[0]))
-							break insiFOR
+				}
+				innerIns, exists := innMap[uint32(i)]
+				if exists {
+
+					for iin, insi := range innerIns {
+						//交易内联指令ProgramId索引 大于最大账户索引则输出
+						iProgramIdIndex := insi.ProgramIdIndex
+						if iProgramIdIndex >= uint32(accountsLen) {
+							// Printf 第几个交易指令 内联指令列表第几个  ProgramIdIndex 最大账户索引 交易Tx
+							log.Printf("Ins innProgramIdIndex %d:%d %d>%d, %s ", i, iin, ProgramIdIndex, accountsLen, signature)
+						}
+						//交易内联指令accounts索引  大于最大账户索引则输出
+					insiFOR:
+						for _, u := range insi.Accounts {
+							if u >= uint8(accountsLen) {
+								// Printf 第几个交易指令 内联指令列表第几个 索引列表 最大账户索引 交易Tx
+								log.Printf("Ins innAccountIndex %d:%d  %v>%d, %s ", i, iin, insi.Accounts, accountsLen, base58.Encode(tran.Signatures[0]))
+								break insiFOR
+							}
 						}
 					}
 				}
 			}
-		}
+		*/
 
 	}
 }
