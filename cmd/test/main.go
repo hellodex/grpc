@@ -187,11 +187,12 @@ func stdAccountIndexes() {
 				log.Printf("Ins ProgramIdIndex %d: %d>%d, %s ", i, ProgramIdIndex, accountsLen, signature)
 			}
 			//交易指令accounts索引  大于最大账户索引则输出
+		inFOR:
 			for _, u := range in.Accounts {
 				if u > uint8(accountsLen) {
 					// Printf 第几个交易指令 索引列表 最大账户索引 交易Tx
 					log.Printf("Ins accountIndex %d:  %v>%d, %s ", i, in.Accounts, accountsLen, base58.Encode(tran.Signatures[0]))
-					break
+					break inFOR
 				}
 			}
 			innerIns, exists := innMap[uint32(i)]
@@ -205,11 +206,12 @@ func stdAccountIndexes() {
 						log.Printf("Ins innProgramIdIndex %d:%d %d>%d, %s ", i, iin, ProgramIdIndex, accountsLen, signature)
 					}
 					//交易内联指令accounts索引  大于最大账户索引则输出
+				insiFOR:
 					for _, u := range insi.Accounts {
 						if u >= uint8(accountsLen) {
 							// Printf 第几个交易指令 内联指令列表第几个 索引列表 最大账户索引 交易Tx
 							log.Printf("Ins innAccountIndex %d:%d  %v>%d, %s ", i, iin, insi.Accounts, accountsLen, base58.Encode(tran.Signatures[0]))
-							break
+							break insiFOR
 						}
 					}
 				}
